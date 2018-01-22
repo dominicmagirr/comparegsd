@@ -1,44 +1,17 @@
-get_e_info = function(d, 
-                      ez, 
-                      include_delay = FALSE, 
-                      d_spec = NULL){
-
-  n_int = d$n.I
-  if (include_delay) n_int = get_pipeline(d = d, d_spec = d_spec)$n_int
-  
-  ### for survival, also supply "get_pipeline" with ez
-  
-  if (class(d) == "gsDesign"){
-    probs = gsProbability(theta = ez, d = d)
-    
-    if (is.null(probs$lower)){
-      p_stop = probs$upper$prob[1:(d$k - 1),]
-    }
-    else {
-      p_stop = probs$upper$prob[1:(d$k - 1),] + probs$lower$prob[1:(d$k - 1),]
-    }
-    
-    if (d$k == 2){
-      
-      e_info_1 = p_stop * n_int[1]
-      e_info_2 = (1 - p_stop) * n_int[2]
-      
-    }
-    else{
-      e_info_1 = colSums(p_stop * n_int[1:(d$k - 1)])
-      e_info_2 = (1 - colSums(p_stop)) * n_int[d$k]
-    }
-    e_info = e_info_1 + e_info_2
-  }
-  else {
-    e_info = rep(1, length(ez))
-  }
-  
-  e_info
-  
-}
-
-#df_e_info_i = data.frame(e_info = e_info, ez = probs$theta)
+#' Plot the expected sample size of several group-sequential designs on one plot, for comparison.
+#' 
+#' \code{draw_e_info} calls \code{get_e_info} for a list of group-sequential designs and creates a ggplot2 object. 
+#' Some aspects of the plot can be controlled with \code{graph_params}.
+#' 
+#' \param{d_list} A list of group-sequential design objects. Usually these are created from \code{gsDesign}.
+#' \param{d_spec} Design specification that is common to all designs being considered. This is list containing the sample size 
+#' for a fixed design, allocation ratio, length of delay, etc. 
+#' \param{ez} The expected z values to calculate power under.
+#' \param{graph_params} A list of graphical parameters to control the plot: \code{z_scale} (default = \code{TRUE}, if false will plot
+#' on the treatment effect scale), \code{z_limits}, \code{n_x_points}, \code{hazard_scale} (default = \code{FALSE}, if true will overide 
+#' \code{z_scale} and plot on hazard ratio scale).
+#' \return A ggplot2 object.
+#' @export
 
 draw_e_info = function(d_list, 
                        d_spec, 

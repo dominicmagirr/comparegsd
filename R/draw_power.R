@@ -1,15 +1,17 @@
-get_power = function(d, ez){
-  
-  if (class(d) == "gsDesign"){
-    probs = gsProbability(theta = ez, d = d)
-    power = colSums(probs$upper$prob)
-  }
-  else {
-    power = pnorm(ez - qnorm(1 - d$alpha))
-  }
-  power
-}
-
+#' Plot the power of several group-sequential designs on one plot, for comparison.
+#' 
+#' \code{draw_power} calls \code{get_power} for a list of group-sequential designs and creates a ggplot2 object. 
+#' Some aspects of the plot can be controlled with \code{graph_params}.
+#' 
+#' \param{d_list} A list of group-sequential design objects. Usually these are created from \code{gsDesign}.
+#' \param{d_spec} Design specification that is common to all designs being considered. This is list containing the sample size 
+#' for a fixed design, allocation ratio, length of delay, etc. 
+#' \param{ez} The expected z values to calculate power under.
+#' \param{graph_params} A list of graphical parameters to control the plot: \code{z_scale} (default = \code{TRUE}, if false will plot
+#' on the treatment effect scale), \code{z_limits}, \code{n_x_points}, \code{hazard_scale} (default = \code{FALSE}, if true will overide 
+#' \code{z_scale} and plot on hazard ratio scale).
+#' \return A ggplot2 object.
+#' @export
 
 draw_power = function(d_list, 
                       d_spec, 
