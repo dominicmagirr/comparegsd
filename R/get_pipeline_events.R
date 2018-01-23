@@ -5,7 +5,8 @@
 #' \param{d} A group sequential design object. Usually this is created from \code{gsDesign}.
 #' \param{d_spec} Design specification that is common to all designs being considered. This is list containing the sample size 
 #' for a fixed design, allocation ratio, length of delay, etc. 
-#' \return A list containing the number of patients completed, the number of patients in the pipeline, the number of patients
+#' \return A list containing the number of target events, the expected time of decision,
+#' the number of patients in the pipeline, the number of patients
 #' recruited and the fraction of patients recruited (relative to a fixed sample size).
 #' @export 
 
@@ -15,14 +16,53 @@ get_pipeline_events = function(d, d_spec){
     
     n_target_events = d_spec$target_events * d$n.I
     
-    n_in_pipeline = sapply(n_target_events, 
-                           find_pipeline_when_n_events,
-                           median_control = d_spec$median_control,
-                           hr = d_spec$hr,
-                           rec_period = d_spec$rec_period,
-                           n_control_arm = d_spec$n_control_arm,
-                           R = d_spec$R,
-                           k = d_spec$k)
+    if (d_spec$increase_n){
+      
+      n_in_pipeline = sapply(n_target_events, 
+                             find_pipeline_when_n_events,
+                             median_control = d_spec$median_control,
+                             hr = d_spec$hr,
+                             rec_period = d_spec$rec_period * max(d$n.I),
+                             n_control_arm = d_spec$n_control_arm * max(d$n.I),
+                             R = d_spec$R,
+                             k = d_spec$k)
+      
+      
+      
+      e_t = sapply(n_target_events, 
+                   find_t_when_n_events,
+                   median_control = d_spec$median_control,
+                   hr = d_spec$hr,
+                   rec_period = d_spec$rec_period * max(d$n.I),
+                   n_control_arm = d_spec$n_control_arm * max(d$n.I),
+                   R = d_spec$R,
+                   k = d_spec$k)
+      
+    }
+    else {
+      
+      n_in_pipeline = sapply(n_target_events, 
+                             find_pipeline_when_n_events,
+                             median_control = d_spec$median_control,
+                             hr = d_spec$hr,
+                             rec_period = d_spec$rec_period,
+                             n_control_arm = d_spec$n_control_arm,
+                             R = d_spec$R,
+                             k = d_spec$k)
+      
+    
+      
+      e_t = sapply(n_target_events, 
+                   find_t_when_n_events,
+                   median_control = d_spec$median_control,
+                   hr = d_spec$hr,
+                   rec_period = d_spec$rec_period,
+                   n_control_arm = d_spec$n_control_arm,
+                   R = d_spec$R,
+                   k = d_spec$k)
+      
+    }
+    
     
     n_recruited = n_target_events + n_in_pipeline
     
@@ -30,12 +70,22 @@ get_pipeline_events = function(d, d_spec){
   }
   else{
     n_target_events = d_spec$target_events * d$n.I
+    
+    e_t = find_t_when_n_events(n = n_target_events,
+                               median_control = d_spec$median_control,
+                               hr = d_spec$hr,
+                               rec_period = d_spec$rec_period,
+                               n_control_arm = d_spec$n_control_arm,
+                               R = d_spec$R,
+                               k = d_spec$k)
+    
     n_in_pipeline = 0
     n_recruited = d$n.I * d_spec$n_control_arm * (1 + d_spec$R)
     n_int = 1 
   }
   
   list(n_target_events = n_target_events,
+       e_t = e_t,
        n_in_pipeline = n_in_pipeline,
        n_recruited = n_recruited,
        n_int = n_int)

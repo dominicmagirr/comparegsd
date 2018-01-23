@@ -5,8 +5,8 @@
 #' \param{d} A group sequential design object. Usually this is created from \code{gsDesign}.
 #' \param{d_spec} Design specification that is common to all designs being considered. This is list containing the sample size 
 #' for a fixed design, allocation ratio, length of delay, etc. 
-#' \return A list containing the number of patients completed, the number of patients in the pipeline, the number of patients
-#' recruited and the fraction of patients recruited (relative to a fixed sample size).
+#' \return A list containing the number of patients completed, the number of patients in the pipeline, the expected time of decision,
+#' the number of patients recruited and the fraction of patients recruited (relative to a fixed sample size).
 #' @export
 
 
@@ -24,18 +24,34 @@ get_pipeline = function(d, d_spec){
                            total_n = max(d$n.I) * d_spec$n_control_arm * (1 + d_spec$R),
                            k = d_spec$k)
     
+    e_t = sapply(n_no_delay, 
+                 find_t_when_n_complete,
+                 delay = d_spec$delay,
+                 rec_period = d_spec$rec_period * max(d$n.I),
+                 total_n = max(d$n.I) * d_spec$n_control_arm * (1 + d_spec$R),
+                 k = d_spec$k)
+    
     n_with_delay = n_no_delay + n_in_pipeline
     n_int = n_with_delay / (d_spec$n_control_arm * (1 + d_spec$R))
   }
   else{
     n_no_delay = d$n.I * d_spec$n_control_arm * (1 + d_spec$R)
     n_in_pipeline = 0
+    
+    e_t = find_t_when_n_complete(n = n_no_delay,
+                                 delay = d_spec$delay,
+                                 rec_period = d_spec$rec_period * max(d$n.I),
+                                 total_n = max(d$n.I) * d_spec$n_control_arm * (1 + d_spec$R),
+                                 k = d_spec$k)
+    
+    
     n_with_delay = n_no_delay
     n_int = 1 
   }
   
   list(n_no_delay = n_no_delay,
        n_in_pipeline = n_in_pipeline,
+       e_t = e_t,
        n_with_delay = n_with_delay,
        n_int = n_int)
 }

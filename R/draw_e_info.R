@@ -52,8 +52,9 @@ draw_e_info = function(d_list,
   
   if (class(d_spec) == "time_to_event_design"){
     
-    if(!z_scale) df_e_info$ez = df_e_info$ez / sqrt(n_control_arm * R / (R + 1))
+    if(!z_scale) df_e_info$ez = df_e_info$ez / sqrt(d_spec$target_events * R / (R + 1) ^ 2)
     if(hazard_scale) df_e_info$ez = exp(-df_e_info$ez)
+    
     
     if (!include_delay){
       
