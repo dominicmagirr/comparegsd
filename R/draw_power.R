@@ -46,8 +46,20 @@ draw_power = function(d_list,
   
   df_pow$design = factor(df_pow$design)
   
-  if(!z_scale) df_pow$ez = df_pow$ez / sqrt(n_control_arm * R / (R + 1))
-  if(hazard_scale) df_pow$ez = exp(-df_pow$ez)
+  
+  if (class(d_spec) == "time_to_event_design"){
+    
+    if(!z_scale) df_pow$ez = df_pow$ez / sqrt(d_spec$target_events * R / (R + 1) ^ 2)
+    if(hazard_scale) df_pow$ez = exp(-df_pow$ez)
+    
+  }
+  
+  else {
+    
+    if(!z_scale) df_pow$ez = df_pow$ez / sqrt(n_control_arm * R / (R + 1))
+    if(hazard_scale) df_pow$ez = exp(-df_pow$ez)
+    
+  }
   
   p = ggplot(data = df_pow,
              mapping = aes(x = ez,
