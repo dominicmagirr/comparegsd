@@ -55,11 +55,26 @@ draw_designs = function(d_list,
   df$design = factor(df$design)
   df$design_int = paste(df$design, df$int)
   
-  df$y = df$y * n_control_arm * (R + 1)
-  if(!z_scale) df$x = df$x / sqrt(n_control_arm * R / (R + 1))
-  if(hazard_scale) df$x = exp(-df$x)
+  if (class(d_spec) == "time_to_event_design" && !include_delay){
+    
+    df$y = df$y * d_spec$target_events
+    if(!z_scale) df$x = df$x / sqrt(d_spec$target_events * R / (R + 1) ^ 2)
+    if(hazard_scale) df$x = exp(-df$x)
+    
+    n_scale = d_spec$target_events
+    
+    
+  }
+  else{
+    
+    df$y = df$y * n_control_arm * (R + 1)
+    if(!z_scale) df$x = df$x / sqrt(n_control_arm * R / (R + 1))
+    if(hazard_scale) df$x = exp(-df$x)
+    
+    n_scale =  n_control_arm * (R + 1)
+  }
   
-  n_scale =  n_control_arm * (R + 1)
+  
   
   if(hazard_scale){
     y_lab = ifelse(include_delay, 

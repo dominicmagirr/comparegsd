@@ -1,29 +1,43 @@
-get_pipeline_events = function(d, d_spec, ez){
+#' Get the number of events at each interim analysis, and the number of patients that have been recruited up to that point.
+#' 
+#' \code{get_pipeline_events} calculates the number of events each interim analysis, and how many patients have
+#' been recruited up to that point.
+#' \param{d} A group sequential design object. Usually this is created from \code{gsDesign}.
+#' \param{d_spec} Design specification that is common to all designs being considered. This is list containing the sample size 
+#' for a fixed design, allocation ratio, length of delay, etc. 
+#' \return A list containing the number of patients completed, the number of patients in the pipeline, the number of patients
+#' recruited and the fraction of patients recruited (relative to a fixed sample size).
+#' @export 
+
+get_pipeline_events = function(d, d_spec){
   
   if (class(d) == "gsDesign"){
     
-    n_no_delay = d$n.I * d_spec$n_control_arm * (1 + d_spec$R)
+    n_target_events = d_spec$target_events * d$n.I
     
-    n_in_pipeline = sapply(n_no_delay, 
-                           find_pipeline_when_n_complete,
-                           delay = d_spec$delay,
-                           rec_period = d_spec$rec_period * max(d$n.I),
-                           total_n = max(d$n.I) * d_spec$n_control_arm * (1 + d_spec$R),
+    n_in_pipeline = sapply(n_target_events, 
+                           find_pipeline_when_n_events,
+                           median_control = d_spec$median_control,
+                           hr = d_spec$hr,
+                           rec_period = d_spec$rec_period,
+                           n_control_arm = d_spec$n_control_arm,
+                           R = d_spec$R,
                            k = d_spec$k)
     
-    n_with_delay = n_no_delay + n_in_pipeline
-    n_int = n_with_delay / (d_spec$n_control_arm * (1 + d_spec$R))
+    n_recruited = n_target_events + n_in_pipeline
+    
+    n_int = n_recruited / (d_spec$n_control_arm * (1 + d_spec$R))
   }
   else{
-    n_no_delay = d$n.I * d_spec$n_control_arm * (1 + d_spec$R)
+    n_target_events = d_spec$target_events * d$n.I
     n_in_pipeline = 0
-    n_with_delay = n_no_delay
+    n_recruited = d$n.I * d_spec$n_control_arm * (1 + d_spec$R)
     n_int = 1 
   }
   
-  list(n_no_delay = n_no_delay,
+  list(n_target_events = n_target_events,
        n_in_pipeline = n_in_pipeline,
-       n_with_delay = n_with_delay,
+       n_recruited = n_recruited,
        n_int = n_int)
 }
 
@@ -75,7 +89,13 @@ find_t_when_n_events = function(n, median_control, hr, rec_period, n_control_arm
 #################################
 #################################
 #################################
-find_pipeline_when_n_events = function(n, median_control, hr, rec_period, n_control_arm, R, k){
+find_pipeline_when_n_events = function(n, 
+                                       median_control,
+                                       hr, 
+                                       rec_period, 
+                                       n_control_arm, 
+                                       R, 
+                                       k){
   
   t_star = find_t_when_n_events(n = n, 
                                 median_control = median_control,

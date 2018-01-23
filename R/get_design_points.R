@@ -23,7 +23,15 @@ get_design_points = function(d,
   
   n_int = d$n.I # info fraction
   
-  if (include_delay) n_int = get_pipeline(d = d, d_spec = d_spec)$n_int
+  if (include_delay) {
+    
+    if (class(d_spec) == "time_to_event_design"){
+      n_int = get_pipeline_events(d = d, d_spec = d_spec)$n_int
+    }
+    else {
+      n_int = get_pipeline(d = d, d_spec = d_spec)$n_int
+    }
+  }
   
   z_range = abs(diff(z_limits))
   
