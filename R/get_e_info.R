@@ -18,8 +18,17 @@ get_e_info = function(d,
                       d_spec = NULL){
   
   n_int = d$n.I
-  if (include_delay) n_int = get_pipeline(d = d, d_spec = d_spec)$n_int
   
+  if (include_delay) {
+    
+    if (class(d_spec) == "time_to_event_design"){
+      n_int = get_pipeline_events(d = d, d_spec = d_spec)$n_int
+    }
+    else {
+      n_int = get_pipeline(d = d, d_spec = d_spec)$n_int
+    }
+  }
+
   ### for survival, also supply "get_pipeline" with ez
   
   if (class(d) == "gsDesign"){

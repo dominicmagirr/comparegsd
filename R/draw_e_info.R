@@ -49,22 +49,43 @@ draw_e_info = function(d_list,
   
   df_e_info$design = factor(df_e_info$design)
   
-  df_e_info$e_info = df_e_info$e_info * n_control_arm * (1 + R) 
   
-  if(!z_scale) df_e_info$ez = df_e_info$ez / sqrt(n_control_arm * R / (R + 1))
-  if(hazard_scale) df_e_info$ez = exp(-df_e_info$ez)
-  
-  n_scale = n_control_arm * (1 + R)
-  
-  if(hazard_scale){
+  if (class(d_spec) == "time_to_event_design"){
+    
+    if(!z_scale) df_e_info$ez = df_e_info$ez / sqrt(n_control_arm * R / (R + 1))
+    if(hazard_scale) df_e_info$ez = exp(-df_e_info$ez)
+    
+    if (!include_delay){
+      
+      df_e_info$e_info = df_e_info$e_info * d_spec$target_events
+      n_scale = d_spec$target_events
+      
+    }
+    else {
+      
+      df_e_info$e_info = df_e_info$e_info * n_control_arm * (1 + R) 
+      n_scale = n_control_arm * (1 + R)
+      
+    }
+    
     y_lab = ifelse(include_delay, 
                    "E(Total n), including pipeline", 
                    "E(Total events)")
+    
   }
-  else{
+  else {
+    
+    df_e_info$e_info = df_e_info$e_info * n_control_arm * (1 + R) 
+    
+    if(!z_scale) df_e_info$ez = df_e_info$ez / sqrt(n_control_arm * R / (R + 1))
+    if(hazard_scale) df_e_info$ez = exp(-df_e_info$ez)
+    
+    n_scale = n_control_arm * (1 + R)
+    
     y_lab = ifelse(include_delay, 
                    "E(Total n), including pipeline", 
                    "E(Total n), excluding pipeline")
+    
   }
   
   p = ggplot(data = df_e_info,

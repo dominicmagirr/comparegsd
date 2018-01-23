@@ -33,6 +33,7 @@ draw_designs = function(d_list,
   hazard_scale = graph_params$hazard_scale
   
   if(z_scale && hazard_scale) stop("z_scale and hazard_scale cannot both be TRUE")
+  if(class(d_spec) != "time_to_event_design" && hazard_scale) stop("you don't want 'hazard_scale = TRUE' for a non time-to-event study")
   
   df = NULL
   
