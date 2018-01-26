@@ -25,7 +25,7 @@ get_design_points = function(d,
   
   if (include_delay) {
     
-    if (class(d_spec) == "time_to_event_design"){
+    if (d_spec$endpoint == "time_to_event"){
       n_int = get_pipeline_events(d = d, d_spec = d_spec)$n_int
     }
     else {

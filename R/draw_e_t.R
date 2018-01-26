@@ -16,10 +16,9 @@
 draw_e_t = function(d_list, 
                     d_spec, 
                     ez = seq(0, 5, length.out = 100),
-                    graph_params = list(z_scale = TRUE,
+                    graph_params = list(z_scale = FALSE,
                                         z_limits = c(-4,4), 
-                                        n_x_points = 400,
-                                        hazard_scale = FALSE)){
+                                        n_x_points = 400)){
   
   n_control_arm = d_spec$n_control_arm
   R = d_spec$R
@@ -27,10 +26,13 @@ draw_e_t = function(d_list,
   z_scale = graph_params$z_scale
   z_limits = graph_params$z_limits
   n_x_points = graph_params$n_x_points
-  hazard_scale = graph_params$hazard_scale
+  
+  hazard_scale = ifelse(!z_scale && d_spec$endpoint == "time_to_event", TRUE, FALSE)
   
   if(z_scale && hazard_scale) stop("z_scale and hazard_scale cannot both be TRUE")
+  if(d_spec$endpoint != "time_to_event" && hazard_scale) stop("you don't want 'hazard_scale = TRUE' for a non time-to-event study")
   
+  d_names = names(d_list)
   
   df_e_t = NULL
   for (i in seq_along(d_list)){
@@ -40,7 +42,7 @@ draw_e_t = function(d_list,
                                         d_spec = d_spec),
                           ez = ez)
     
-    df_e_t_i$design = i
+    df_e_t_i$design = d_names[i]
     
     df_e_t = rbind(df_e_t, df_e_t_i)
   }
@@ -48,7 +50,7 @@ draw_e_t = function(d_list,
   df_e_t$design = factor(df_e_t$design)
   
   
-  if (class(d_spec) == "time_to_event_design"){
+  if (d_spec$endpoint == "time_to_event"){
     
     if(!z_scale) df_e_t$ez     = df_e_t$ez / sqrt(d_spec$target_events * R / (R + 1) ^ 2)
     if(hazard_scale) df_e_t$ez = exp(-df_e_t$ez)

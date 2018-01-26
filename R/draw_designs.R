@@ -17,10 +17,9 @@
 
 draw_designs = function(d_list, 
                         d_spec, 
-                        graph_params = list(z_scale = TRUE,
+                        graph_params = list(z_scale = FALSE,
                                             z_limits = c(-4,4), 
-                                            n_x_points = 400,
-                                            hazard_scale = FALSE),
+                                            n_x_points = 400),
                         include_delay = FALSE){
   
 
@@ -30,12 +29,15 @@ draw_designs = function(d_list,
   z_scale = graph_params$z_scale
   z_limits = graph_params$z_limits
   n_x_points = graph_params$n_x_points
-  hazard_scale = graph_params$hazard_scale
+  
+  hazard_scale = ifelse(!z_scale && d_spec$endpoint == "time_to_event", TRUE, FALSE)
   
   if(z_scale && hazard_scale) stop("z_scale and hazard_scale cannot both be TRUE")
-  if(class(d_spec) != "time_to_event_design" && hazard_scale) stop("you don't want 'hazard_scale = TRUE' for a non time-to-event study")
+  if(d_spec$endpoint != "time_to_event" && hazard_scale) stop("you don't want 'hazard_scale = TRUE' for a non time-to-event study")
   
   df = NULL
+  
+  d_names = names(d_list)
   
   for (i in 1:length(d_list)){
     
@@ -48,7 +50,7 @@ draw_designs = function(d_list,
                                       d_spec = d_spec)
     
     df_i = data.frame(x = design_points$x, y = design_points$y, int = design_points$int)
-    df_i$design = i
+    df_i$design = d_names[i]
     
     df= rbind(df, df_i)
   }
@@ -56,7 +58,7 @@ draw_designs = function(d_list,
   df$design = factor(df$design)
   df$design_int = paste(df$design, df$int)
   
-  if (class(d_spec) == "time_to_event_design"){
+  if (d_spec$endpoint == "time_to_event"){
     
     
     if(!z_scale) df$x = df$x / sqrt(d_spec$target_events * R / (R + 1) ^ 2)

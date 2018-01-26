@@ -17,7 +17,7 @@ get_e_t = function(d,
                    d_spec = NULL){
 
   
-  if (class(d_spec) == "time_to_event_design"){
+  if (d_spec$endpoint == "time_to_event"){
     e_t  = get_pipeline_events(d = d, d_spec = d_spec)$e_t
   }
   else {
